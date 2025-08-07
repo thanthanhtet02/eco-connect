@@ -107,22 +107,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
 // Validation functions for password fields
   String? _validateCurrentPassword(String? value) {
-    if (value == null || value.isEmpty)
+    if (value == null || value.isEmpty) {
       return 'Please enter your current password';
+    }
     return null;
   }
 
   String? _validateNewPassword(String? value) {
     if (value == null || value.isEmpty) return 'Please enter a new password';
     if (value.length < 6) return 'Password must be at least 6 characters';
-    if (value == _currentPasswordController.text)
+    if (value == _currentPasswordController.text) {
       return 'New password must be different from current password';
+    }
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty)
+    if (value == null || value.isEmpty) {
       return 'Please confirm your new password';
+    }
     if (value != _newPasswordController.text) return 'Passwords do not match';
     return null;
   }

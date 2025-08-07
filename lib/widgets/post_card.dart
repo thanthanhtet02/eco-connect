@@ -4,74 +4,81 @@ import '../CRUD_related_screens/edit_post_screen.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
-  const PostCard({required this.post});
+  final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
+
+  const PostCard({
+    required this.post,
+    this.onDelete,
+    this.onEdit,
+  });
 
   void _showPostOptions(BuildContext context) {
+    if (onDelete == null && onEdit == null) return;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
       ),
-      builder:
-          (_) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: const Padding(
-                    padding: EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      "Delete Post",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onDelete != null)
+              ListTile(
+                title: const Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    "Delete Post",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
                     ),
                   ),
-                  trailing: Transform.scale(
-                    scale: 1.6,
-                    child: Image.asset('images/delete.png'),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showCustomDeleteDialog(context);
-                  },
                 ),
-                const SizedBox(height: 25),
-                ListTile(
-                  title: const Padding(
-                    padding: EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      "Edit Post",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
+                trailing: Transform.scale(
+                  scale: 1.6,
+                  child: Image.asset('images/delete.png'),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCustomDeleteDialog(context);
+                },
+              ),
+            if (onEdit != null) ...[
+              const SizedBox(height: 25),
+              ListTile(
+                title: const Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    "Edit Post",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
                     ),
                   ),
-                  trailing: Transform.scale(
-                    scale: 1.6,
-                    child: const Icon(Icons.edit, color: Colors.black),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditPostScreen(post: post),
-                      ),
-                    );
-                  },
                 ),
-              ],
-            ),
-          ),
+                trailing: Transform.scale(
+                  scale: 1.6,
+                  child: const Icon(Icons.edit, color: Colors.black),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onEdit!();
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
   void _showCustomDeleteDialog(BuildContext context) {
+    if (onDelete == null) return;
     //dialog box for delete confirmation
     showDialog(
       context: context,
@@ -79,11 +86,11 @@ class PostCard extends StatelessWidget {
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
-            side: BorderSide(color: Colors.greenAccent),
+            side: const BorderSide(color: Colors.greenAccent),
           ),
           backgroundColor: Colors.white,
           child: Container(
-            padding: EdgeInsets.fromLTRB(20, 28, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
             height: 200,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -93,7 +100,7 @@ class PostCard extends StatelessWidget {
                   style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                Spacer(),
+                const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -103,12 +110,13 @@ class PostCard extends StatelessWidget {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.black, width: 1.5),
+                          side:
+                              const BorderSide(color: Colors.black, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text("Cancel"),
+                        child: const Text("Cancel"),
                       ),
                     ),
                     SizedBox(
@@ -117,8 +125,9 @@ class PostCard extends StatelessWidget {
                       child: OutlinedButton(
                         onPressed: () {
                           Navigator.pop(context);
+                          onDelete!();
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                 "Post deleted",
                                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -128,7 +137,7 @@ class PostCard extends StatelessWidget {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.red, width: 1.5),
+                          side: const BorderSide(color: Colors.red, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -178,21 +187,29 @@ class PostCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => _showPostOptions(context),
-                  child: const Icon(Icons.more_vert, size: 30),
-                ),
+                if (onEdit != null || onDelete != null)
+                  GestureDetector(
+                    onTap: () => _showPostOptions(context),
+                    child: const Icon(Icons.more_vert, size: 30),
+                  ),
               ],
             ),
           ),
 
           // Image
-          Image.asset(
-            post.image,
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+          if (post.image != null)
+            Image.network(
+              post.image!,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                'images/idea.jpg',
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
 
           // Caption and Actions
           Padding(
@@ -208,8 +225,11 @@ class PostCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Icon(
-                      post.isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: post.isLiked ? Colors.red : Colors.black,
+                      post.likedBy.isNotEmpty
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color:
+                          post.likedBy.isNotEmpty ? Colors.red : Colors.black,
                       size: 30,
                     ),
                     const SizedBox(width: 20),

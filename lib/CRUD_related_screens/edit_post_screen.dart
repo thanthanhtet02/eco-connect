@@ -6,9 +6,9 @@ class EditPostScreen extends StatelessWidget {
   final TextEditingController captionController;
 
   EditPostScreen({required this.post})
-    : captionController = TextEditingController(
-        text: post.caption,
-      ); //load the existing caption
+      : captionController = TextEditingController(
+          text: post.caption,
+        ); //load the existing caption
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class EditPostScreen extends StatelessWidget {
 
             //  Image
             Image.asset(
-              post.image,
+              post.image!,
               width: double.infinity,
               height: 220,
               fit: BoxFit.cover,
