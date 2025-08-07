@@ -5,11 +5,38 @@ class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collection = 'posts';
 
+  PostService() {
+    // Debug initialization
+    print('PostService: Initializing with Firestore instance');
+    print('PostService: Database exists: ${_firestore != null}');
+    print('PostService: Database settings: ${_firestore.settings.toString()}');
+    print('PostService: Host: ${_firestore.settings.host}');
+    // Test collection access
+    _firestore.collection(_collection).get().then((snapshot) {
+      print('PostService: Successfully accessed posts collection');
+    }).catchError((error) {
+      print('PostService: Error accessing posts collection: $error');
+    });
+  }
+
   // CREATE: Add a new post
   Future<String> createPost(String userId, String username, String caption, String? imageUrl) async {
     try {
+      print('PostService: Starting createPost');
+      print('PostService: User ID: $userId');
+      
       // First check if the collection exists, if not create it
       final collectionRef = _firestore.collection(_collection);
+      print('PostService: Got collection reference');
+      
+      // Test collection access before creating
+      try {
+        await collectionRef.limit(1).get();
+        print('PostService: Successfully tested collection access');
+      } catch (e) {
+        print('PostService: Error testing collection access: $e');
+        throw Exception('Collection access failed: $e');
+      }
       
       // Create the post document
       final data = {
@@ -23,43 +50,69 @@ class PostService {
         'updatedAt': null,
       };
       
-      print('Attempting to create post with data: $data'); // Debug log
+      print('PostService: Attempting to create post with data: $data');
       
-      final docRef = await collectionRef.add(data);
-      print('Post created successfully with ID: ${docRef.id}'); // Debug log
-      
-      return docRef.id;
+      try {
+        final docRef = await collectionRef.add(data);
+        print('PostService: Post created successfully with ID: ${docRef.id}');
+        return docRef.id;
+      } catch (e) {
+        print('PostService: Error in add() operation: $e');
+        throw e;
+      }
     } catch (e, stackTrace) {
-      print('Error creating post: $e'); // Debug log
-      print('Stack trace: $stackTrace'); // Debug stack trace
+      print('PostService: Error creating post: $e');
+      print('PostService: Stack trace: $stackTrace');
+      if (e is FirebaseException) {
+        print('PostService: Firebase error code: ${e.code}');
+        print('PostService: Firebase error message: ${e.message}');
+      }
       throw Exception('Failed to create post: $e');
     }
   }
 
   // READ: Get all posts
   Stream<List<Post>> getAllPosts() {
-    print('Starting getAllPosts stream'); // Debug log
+    print('PostService: Starting getAllPosts stream');
+    
+    // First test if we can access the collection
+    _firestore.collection(_collection).limit(1).get().then((snapshot) {
+      print('PostService: Test query successful');
+    }).catchError((error) {
+      print('PostService: Test query failed: $error');
+      if (error is FirebaseException) {
+        print('PostService: Firebase error code: ${error.code}');
+        print('PostService: Firebase error message: ${error.message}');
+      }
+    });
+
     return _firestore
         .collection(_collection)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .handleError((error) {
-          print('Error in getAllPosts stream: $error'); // Debug log
+          print('PostService: Error in getAllPosts stream: $error');
+          if (error is FirebaseException) {
+            print('PostService: Firebase error code: ${error.code}');
+            print('PostService: Firebase error message: ${error.message}');
+          }
           throw Exception('Failed to fetch posts: $error');
         })
         .map((snapshot) {
-          print('Received snapshot with ${snapshot.docs.length} documents'); // Debug log
+          print('PostService: Received snapshot with ${snapshot.docs.length} documents');
           try {
             return snapshot.docs.map((doc) {
               try {
-                return Post.fromMap(doc.id, doc.data());
+                final data = doc.data();
+                print('PostService: Processing document ${doc.id}: $data');
+                return Post.fromMap(doc.id, data);
               } catch (e) {
-                print('Error parsing post ${doc.id}: $e'); // Debug log
+                print('PostService: Error parsing post ${doc.id}: $e');
                 rethrow;
               }
             }).toList();
           } catch (e) {
-            print('Error processing posts: $e'); // Debug log
+            print('PostService: Error processing posts: $e');
             rethrow;
           }
         });
