@@ -23,17 +23,20 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    // Configure Firestore
+    // Configure Firestore for Web
     FirebaseFirestore.instance.settings = Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      // Force long polling for more reliable connection
+      // Force long polling for web
       webExperimentalForceLongPolling: true,
-      webExperimentalAutoDetectLongPolling: true,
-      // Add timeout settings
+      webExperimentalAutoDetectLongPolling: false,
+      // Increase timeouts for web
       webExperimentalLongPollingOptions: {
-        'timeoutSeconds': 30,
+        'timeoutSeconds': 60,
+        'maxRetries': 5,
       },
+      // Enable offline persistence for web
+      cacheSizeBytes: 40000000, // 40 MB
     );
     
     print('Firebase initialized successfully'); // Debug log

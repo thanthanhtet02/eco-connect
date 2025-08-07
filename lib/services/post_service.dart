@@ -30,16 +30,24 @@ class PostService {
       final collectionRef = _firestore.collection(_collection);
       print('PostService: Got collection reference');
       
-      // Set a timeout for the operation
-      final timeout = Duration(seconds: 15);
+      // Set a longer timeout for web operations
+      final timeout = Duration(seconds: 30);
       
       // Test collection access before creating
       try {
-        await collectionRef.limit(1).get();
+        // Use a timeout for the test query
+        await Future.any([
+          collectionRef.limit(1).get(),
+          Future.delayed(timeout).then((_) => throw TimeoutException('Test query timed out')),
+        ]);
         print('PostService: Successfully tested collection access');
       } catch (e) {
         print('PostService: Error testing collection access: $e');
-        throw Exception('Collection access failed: $e');
+        if (e is TimeoutException) {
+          print('PostService: Test query timed out - trying to proceed anyway');
+        } else {
+          throw Exception('Collection access failed: $e');
+        }
       }
       
       // Create the post document
