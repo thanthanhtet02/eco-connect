@@ -8,7 +8,11 @@ class PostService {
   // CREATE: Add a new post
   Future<String> createPost(String userId, String username, String caption, String? imageUrl) async {
     try {
-      final docRef = await _firestore.collection(_collection).add({
+      // First check if the collection exists, if not create it
+      final collectionRef = _firestore.collection(_collection);
+      
+      // Create the post document
+      final data = {
         'userId': userId,
         'username': username,
         'caption': caption,
@@ -17,24 +21,47 @@ class PostService {
         'likedBy': [],
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': null,
-      });
+      };
+      
+      print('Attempting to create post with data: $data'); // Debug log
+      
+      final docRef = await collectionRef.add(data);
+      print('Post created successfully with ID: ${docRef.id}'); // Debug log
       
       return docRef.id;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Error creating post: $e'); // Debug log
+      print('Stack trace: $stackTrace'); // Debug stack trace
       throw Exception('Failed to create post: $e');
     }
   }
 
   // READ: Get all posts
   Stream<List<Post>> getAllPosts() {
+    print('Starting getAllPosts stream'); // Debug log
     return _firestore
         .collection(_collection)
         .orderBy('createdAt', descending: true)
         .snapshots()
+        .handleError((error) {
+          print('Error in getAllPosts stream: $error'); // Debug log
+          throw Exception('Failed to fetch posts: $error');
+        })
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => Post.fromMap(doc.id, doc.data()))
-              .toList();
+          print('Received snapshot with ${snapshot.docs.length} documents'); // Debug log
+          try {
+            return snapshot.docs.map((doc) {
+              try {
+                return Post.fromMap(doc.id, doc.data());
+              } catch (e) {
+                print('Error parsing post ${doc.id}: $e'); // Debug log
+                rethrow;
+              }
+            }).toList();
+          } catch (e) {
+            print('Error processing posts: $e'); // Debug log
+            rethrow;
+          }
         });
   }
 

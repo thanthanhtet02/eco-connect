@@ -17,8 +17,16 @@ import 'package:eco_connect/authentication_screens/change_password_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // If you have firebase_options.dart, use:
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized successfully'); // Debug log
+  } catch (e) {
+    print('Error initializing Firebase: $e'); // Debug log
+    rethrow;
+  }
+  
   runApp(EcoConnect());
 }
 
