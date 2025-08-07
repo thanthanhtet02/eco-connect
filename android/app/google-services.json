@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1096650632750",
+    "project_id": "eco-connect-v2",
+    "storage_bucket": "eco-connect-v2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096650632750:android:ccd1dd8b627aeda785b9bf",
+        "android_client_info": {
+          "package_name": "com.example.my_flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096650632750-l2qn0brrr4ttrmive3ktfp6d209l9ko0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.my_flutter_app",
+            "certificate_hash": "0c7f237106b797c36777192c9db747d4f2e20a21"
+          }
+        },
+        {
+          "client_id": "1096650632750-8so2uuecsloaf1h9qbtmgc09bb9rh1mj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY5fZ3Dl9CeWO_OBOBphh5FFrz1USgsEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096650632750-8so2uuecsloaf1h9qbtmgc09bb9rh1mj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,51 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:eco_connect/firebase_options.dart';
+import 'package:eco_connect/authentication_screens/login_screen.dart';
+import 'package:eco_connect/authentication_screens/register_screen.dart';
+import 'package:eco_connect/authentication_screens/forget_password_screen.dart';
+import 'package:eco_connect/CRUD_related_screens/home_screen.dart';
+import 'package:eco_connect/CRUD_related_screens/create_post_screen.dart';
+import 'package:eco_connect/CRUD_related_screens/profile_screen.dart';
+import 'package:eco_connect/screens/settingsScreen.dart';
+import 'package:eco_connect/screens/donation_qr_code_screen.dart';
+import 'package:eco_connect/screens/search_screen.dart';
+import 'package:eco_connect/screens/supportus_scren.dart';
+import 'package:eco_connect/screens/update_profile_screen.dart';
+import 'package:eco_connect/authentication_screens/change_password_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // If you have firebase_options.dart, use:
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(EcoConnect());
+}
+
+class EcoConnect extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'EcoConnect',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+      ),
+      home: LoginScreen(),
+      routes: {
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/forget': (context) => ForgetPasswordScreen(),
+        '/home': (context) => HomeScreen(),
+        '/create': (context) => CreatePostScreen(),
+        '/profile': (context) => ProfileScreen(),
+        '/settings': (context) => SettingsScreen(),
+        '/qr': (context) => DonationQRCodeScreen(),
+        '/profile_details': (context) => ProfileDetailsScreen(),
+        '/search': (context) => SearchScreen(),
+        '/support': (context) => SupportUsScreen(),
+        '/change_password': (context) => ChangePasswordScreen(),
+      },
+    );
+  }
+}
