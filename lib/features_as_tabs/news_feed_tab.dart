@@ -1,34 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/post_model.dart';
+import '../services/post_service.dart';
 import '../widgets/post_card.dart';
+import '../CRUD_related_screens/edit_post_screen.dart';
 
 class NewsFeedTab extends StatelessWidget {
-  final List<Post> posts = [
-    Post(
-      username: 'Jeff Wayne',
-      caption: 'Sustainability is helping the world from climate change .',
-      image: 'images/hands.png',
-      likes: 101,
-      isLiked: true,
-    ),
-    Post(
-      username: 'Jeff Wayne',
-      caption: 'Saving energy today.',
-      image: 'images/eco_system.png',
-      likes: 87,
-      isLiked: false,
-    ),
-  ];
+  final PostService _postService = PostService();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.grey[200],
-      child: ListView.builder(
-        padding: EdgeInsets.zero,
-        itemCount: posts.length,
-        itemBuilder:
-            (BuildContext context, int index) => PostCard(post: posts[index]),
+      child: StreamBuilder<List<Post>>(
+        stream: _postService.getAllPosts(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.post_add,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No posts yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/create'),
+                    child: Text('Create a post'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.all(8),
+            itemCount: posts.length,
+            itemBuilder: (context, index) => PostCard(
+              post: posts[index],
+              onDelete: () async {
+                try {
+                  await _postService.deletePost(posts[index].id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Post deleted successfully')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete post: $e')),
+                  );
+                }
+              },
+              onEdit: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditPostScreen(post: posts[index]),
+                  ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
