@@ -21,15 +21,38 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
       if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        // Check file size (limit to 5MB)
+        final bytes = await file.length();
+        if (bytes > 5 * 1024 * 1024) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image size too large. Please select an image under 5MB.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
+        
         setState(() {
-          _imageFile = File(pickedFile.path);
+          _imageFile = file;
         });
       }
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          duration: const Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -37,7 +60,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _createPost() async {
     if (_captionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a caption')),
+        const SnackBar(content: Text('Please enter a caption')),
       );
       return;
     }
@@ -52,9 +75,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       String? imageUrl;
       if (_imageFile != null) {
-        imageUrl = await _storageService.uploadPostImage(user.uid, _imageFile!);
+        try {
+          imageUrl = await _storageService.uploadPostImage(user.uid, _imageFile!);
+          if (imageUrl == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to upload image, creating post without image'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload image: $e'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // Continue without the image
+          imageUrl = null;
+        }
       }
 
+      // Create post even if image upload failed
       await _postService.createPost(
         user.uid,
         user.displayName ?? 'Anonymous',
@@ -62,10 +105,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         imageUrl,
       );
 
+      if (!context.mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create post: $e')),
+        SnackBar(
+          content: Text('Failed to create post: $e'),
+          duration: const Duration(seconds: 3),
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
