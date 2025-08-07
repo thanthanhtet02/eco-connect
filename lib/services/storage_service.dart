@@ -5,10 +5,6 @@ import 'package:path/path.dart' as path;
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  StorageService() {
-    print('Initializing Storage Service with bucket: ${_storage.bucket}');
-  }
-
   Future<String?> uploadPostImage(String userId, File imageFile) async {
     try {
       final fileName = path.basename(imageFile.path);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eco_connect/models/post_model.dart';
 
@@ -29,6 +30,9 @@ class PostService {
       final collectionRef = _firestore.collection(_collection);
       print('PostService: Got collection reference');
       
+      // Set a timeout for the operation
+      final timeout = Duration(seconds: 15);
+      
       // Test collection access before creating
       try {
         await collectionRef.limit(1).get();
@@ -53,11 +57,18 @@ class PostService {
       print('PostService: Attempting to create post with data: $data');
       
       try {
-        final docRef = await collectionRef.add(data);
+        // Use timeout for the operation
+        final docRef = await Future.any([
+          collectionRef.add(data),
+          Future.delayed(timeout).then((_) => throw TimeoutException('Operation timed out')),
+        ]);
         print('PostService: Post created successfully with ID: ${docRef.id}');
         return docRef.id;
       } catch (e) {
         print('PostService: Error in add() operation: $e');
+        if (e is TimeoutException) {
+          print('PostService: Operation timed out - this might be a network issue');
+        }
         throw e;
       }
     } catch (e, stackTrace) {

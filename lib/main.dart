@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eco_connect/firebase_options.dart';
 import 'package:eco_connect/authentication_screens/login_screen.dart';
 import 'package:eco_connect/authentication_screens/register_screen.dart';
@@ -21,6 +22,20 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    
+    // Configure Firestore
+    FirebaseFirestore.instance.settings = Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      // Force long polling for more reliable connection
+      webExperimentalForceLongPolling: true,
+      webExperimentalAutoDetectLongPolling: true,
+      // Add timeout settings
+      webExperimentalLongPollingOptions: {
+        'timeoutSeconds': 30,
+      },
+    );
+    
     print('Firebase initialized successfully'); // Debug log
   } catch (e) {
     print('Error initializing Firebase: $e'); // Debug log
